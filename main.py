@@ -35,7 +35,22 @@ def obtener_nombre_archivo(link_directo):
         return f"Error al obtener el nombre del archivo: {e}"
 
 def descargar_archivo(link_directo, nombre_archivo):
-    os.system(f"wget -O '{nombre_archivo}' '{link_directo}'")
+    session = requests.Session()
+    
+    # Hacemos la primera solicitud para obtener la URL de descarga real
+    respuesta = session.get(link_directo, allow_redirects=True)
+    
+    # Verifica si Google Drive ha devuelto una página de confirmación (para archivos grandes)
+    if "confirm" in respuesta.url:
+        confirm_url = respuesta.url
+        cookies = respuesta.cookies
+        respuesta = session.get(confirm_url, cookies=cookies, allow_redirects=True)
+
+    # Descargar el archivo
+    with open(nombre_archivo, 'wb') as f:
+        for chunk in respuesta.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
 
 # Entrada desde la línea de comandos
 link_google_drive = sys.argv[1]
