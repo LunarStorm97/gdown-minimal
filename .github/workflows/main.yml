@@ -1,38 +1,40 @@
-name: Release from Google Drive
+name: Descargar y Subir archivo como Release
 
 on:
   workflow_dispatch:
     inputs:
-      google_drive_url:
-        description: 'URL de Google Drive'
+      google_drive_link:
+        description: "Enlace de Google Drive para descargar el archivo"
         required: true
         type: string
 
 jobs:
-  release:
+  descargar_y_subir:
     runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.2.2
 
-    - name: Set up Python
+    steps:
+    - name: Comprobar código fuente
+      uses: actions/checkout@v2
+
+    - name: Establecer Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.8'
 
-    - name: Install dependencies
+    - name: Instalar dependencias
       run: |
+        python -m pip install --upgrade pip
         pip install requests
 
-    - name: Download file from Google Drive
+    - name: Descargar archivo desde Google Drive
       run: |
-        python download_and_release.py "${{ github.event.inputs.google_drive_url }}"
+        python main.py ${{ github.event.inputs.google_drive_link }}
 
-    - name: Create release and upload asset
+    - name: Subir archivo a GitHub Release
       uses: softprops/action-gh-release@v2.2.1
       with:
-        files: "./downloaded_file"
+        files: |
+          *
         tag_name: ${{ github.run_id }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
